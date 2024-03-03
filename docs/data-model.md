@@ -13,7 +13,7 @@ erDiagram
     roast {
         roast_id int PK
         bean_id int FK
-        level_id roast_level FK
+        roast_level_id int FK
         description text
         ts timestamp
     }
