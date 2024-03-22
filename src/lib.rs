@@ -1,16 +1,15 @@
 use std::error::Error;
 
-use axum::http::StatusCode;
 use crate::bean::service::BeanService;
 
 mod bean;
+mod config;
 mod cornucopia;
+mod db;
 mod server;
 mod telemetry;
-mod db;
-mod config;
 
-pub async fn run_application() -> Result<(), Box<dyn Error>>{
+pub async fn run_application() -> Result<(), Box<dyn Error>> {
     let config = config::read_config().await?;
     telemetry::init_tracing().await;
 
@@ -18,8 +17,8 @@ pub async fn run_application() -> Result<(), Box<dyn Error>>{
 
     let app_state = AppState {
         bean_service: BeanService {
-            db_pool: pool.clone()
-        }
+            db_pool: pool.clone(),
+        },
     };
 
     server::serve(app_state).await
@@ -27,10 +26,5 @@ pub async fn run_application() -> Result<(), Box<dyn Error>>{
 
 #[derive(Clone)]
 struct AppState {
-    bean_service: BeanService
+    bean_service: BeanService,
 }
-
-
-
-
-

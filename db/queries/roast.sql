@@ -17,24 +17,24 @@ select r.roast_id        as roast_id,
        rl.description    as roast_level_description
 from core.roast r
          inner join core.roast_level rl using (roast_level_id)
-where roast_id = :roastId;
+where roast_id = :roast_id;
 
 --! all_roast_steps
 select roast_step_id,
        roast_id,
-       step_order,
+       position,
        description,
-       ts,
+       time,
        fan_speed,
        temp_setting,
        temperature
 from core.roast_step
-where roast_id = :roastId;
+where roast_id = :roast_id;
 
 --! insert_roast
 with r as (
-    insert into core.roast (bean_id, roast_level_id, ts)
-        values (:beanId, :roastLevelId, :ts)
+    insert into core.roast (roast_id, bean_id, roast_level_id, ts)
+        values (:roast_id, :bean_id, :roast_level_id, :ts)
         returning roast_id, bean_id, roast_level_id, ts)
 select r.roast_id        as roast_id,
        r.bean_id         as bean_id,
@@ -46,14 +46,14 @@ from r
          inner join core.roast_level rl using (roast_level_id);
 
 --! insert_roast_step
-insert into core.roast_step(roast_id, step_order, description, ts, fan_speed, temp_setting, temperature)
-values (:roastId, :stepOrder, :description, :ts, :fanSpeed, :tempSetting, :temperature)
+insert into core.roast_step(roast_step_id, roast_id, position, description, time, fan_speed, temp_setting, temperature)
+values (:roast_step_id, :roast_id, :position, :description, :time, :fan_speed, :temp_setting, :temperature)
 returning
     roast_step_id,
     roast_id,
-    step_order,
+    position,
     description,
-    ts,
+    time,
     fan_speed,
     temp_setting,
     temperature;

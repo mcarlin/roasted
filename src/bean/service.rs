@@ -1,7 +1,8 @@
-use std::error::Error;
-use deadpool_postgres::{Pool};
 use crate::bean::model::Bean;
 use crate::cornucopia::queries::bean::Bean as BeanRow;
+use deadpool_postgres::Pool;
+use std::error::Error;
+use uuid::Uuid;
 
 impl From<BeanRow> for Bean {
     fn from(b: BeanRow) -> Self {
@@ -24,7 +25,7 @@ pub struct BeanService {
 impl BeanService {
     pub async fn get_beans(&self) -> Result<Vec<Bean>, Box<dyn Error>> {
         let client = self.db_pool.get().await?;
-        
+
         Ok(crate::cornucopia::queries::bean::all_beans()
             .bind(&client)
             .all()
@@ -34,14 +35,13 @@ impl BeanService {
             .collect())
     }
 
-    pub async fn get_bean_by_id(&self, id: i32) -> Result<Bean, Box<dyn Error>> {
+    pub async fn get_bean_by_id(&self, id: Uuid) -> Result<Bean, Box<dyn Error>> {
         let client = self.db_pool.get().await?;
-        
+
         Ok(crate::cornucopia::queries::bean::find_bean_by_id()
             .bind(&client, &id)
             .one()
             .await
             .map(Bean::from)?)
-    }   
+    }
 }
-

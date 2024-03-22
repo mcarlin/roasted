@@ -1,6 +1,6 @@
+use crate::config::DatabaseConfig;
 use deadpool_postgres::{Config, CreatePoolError, Pool, Runtime};
 use tokio_postgres::NoTls;
-use crate::config::{DatabaseConfig};
 
 pub async fn create_pool(config: DatabaseConfig) -> Result<Pool, CreatePoolError> {
     let mut cfg = Config::new();
