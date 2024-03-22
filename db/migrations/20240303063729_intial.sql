@@ -1,35 +1,36 @@
 -- migrate:up
 
-create table if not exists bean
+create table if not exists core.bean
 (
-    bean_id     int primary key generated always as identity,
+    bean_id     uuid primary key,
     name        text      not null,
     description text,
-    ts          timestamp not null,
+    ts          timestamptz not null,
     region      text,
     grade       text
 );
 
-create table if not exists roast_level
+create table if not exists core.roast_level
 (
-    roast_level_id int primary key generated always as identity,
-    name           text not null,
+    roast_level_id uuid primary key,
+    name           text not null ,
     description    text
 );
 
-create table if not exists roast
+create table if not exists core.roast
 (
-    roast_id int primary key generated always as identity,
-    bean_id  int references bean (bean_id) on delete cascade,
-    level_id int references roast_level (roast_level_id),
-    ts       timestamp not null
+    roast_id       uuid primary key,
+    bean_id        uuid references core.bean (bean_id) on delete cascade,
+    roast_level_id uuid references core.roast_level (roast_level_id),
+    ts             timestamptz not null
 );
 
-create table if not exists roast_step
+create table if not exists core.roast_step
 (
-    roast_step_id int primary key generated always as identity,
-    roast_id      integer references roast (roast_id) on delete cascade,
-    time          bigint NOT NULL,
+    roast_step_id uuid primary key,
+    roast_id      uuid references core.roast (roast_id) on delete cascade,
+    position      integer not null,
+    time          bigint  not null,
     fan_speed     integer check (fan_speed between 1 and 9),
     temp_setting  integer check (temp_setting between 1 and 9),
     temperature   numeric,
@@ -37,20 +38,20 @@ create table if not exists roast_step
 );
 
 -- source: https://thecaptainscoffee.com/pages/roast-levels
-insert into roast_level(name, description)
-values ('Cinnamon', 'Beans roasted to the very beginning of first cracks.'),
-       ('City Roast', 'Beans roasted to the middle of first cracks.'),
-       ('City+ Roast', 'Beans roasted to the tail end of first cracks.'),
-       ('Full-City Roast', 'Beans roasted past first cracks but before second cracks have begun.'),
-       ('Full-City+ Roast', 'Beans roasted to the very start of second cracks.'),
-       ('Vienna Roast', 'Beans roasted to the middle of second cracks.'),
-       ('French Roast', 'Beans roasted to the tail end of second cracks.'),
-       ('Italian/Spanish Roast', 'Beans roasted past second cracks.')
+insert into core.roast_level(roast_level_id, name, description)
+values (gen_random_uuid(), 'Cinnamon', 'Beans roasted to the very beginning of first cracks.'),
+       (gen_random_uuid(), 'City Roast', 'Beans roasted to the middle of first cracks.'),
+       (gen_random_uuid(), 'City+ Roast', 'Beans roasted to the tail end of first cracks.'),
+       (gen_random_uuid(), 'Full-City Roast', 'Beans roasted past first cracks but before second cracks have begun.'),
+       (gen_random_uuid(), 'Full-City+ Roast', 'Beans roasted to the very start of second cracks.'),
+       (gen_random_uuid(), 'Vienna Roast', 'Beans roasted to the middle of second cracks.'),
+       (gen_random_uuid(), 'French Roast', 'Beans roasted to the tail end of second cracks.'),
+       (gen_random_uuid(), 'Italian/Spanish Roast', 'Beans roasted past second cracks.')
 on conflict do nothing;
 
 -- migrate:down
 
-drop table if exists roast_step;
-drop table if exists roast;
-drop table if exists roast_level;
-drop table if exists bean;
+drop table if exists core.roast_step;
+drop table if exists core.roast;
+drop table if exists core.roast_level;
+drop table if exists core.bean;
