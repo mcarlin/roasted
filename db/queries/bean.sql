@@ -9,7 +9,7 @@ select bean_id, name, description, ts, region, grade
 from core.bean
 where bean_id = :bean_id;
 
---! insert_bean
+--! insert_bean (description?, region?, grade?) : Bean
 insert into core.bean (bean_id, name, description, ts, region, grade)
 values (:bean_id, :name, :description, :ts, :region, :grade)
 returning

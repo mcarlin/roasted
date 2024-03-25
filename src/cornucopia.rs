@@ -23,10 +23,10 @@ pub mod queries {
         > {
             pub bean_id: uuid::Uuid,
             pub name: T1,
-            pub description: T2,
+            pub description: Option<T2>,
             pub ts: time::OffsetDateTime,
-            pub region: T3,
-            pub grade: T4,
+            pub region: Option<T3>,
+            pub grade: Option<T4>,
         }
         #[derive(serde::Serialize, Debug, Clone, PartialEq)]
         pub struct Bean {
@@ -79,99 +79,6 @@ pub mod queries {
         {
             pub fn map<R>(self, mapper: fn(BeanBorrowed) -> R) -> BeanQuery<'a, C, R, N> {
                 BeanQuery {
-                    client: self.client,
-                    params: self.params,
-                    stmt: self.stmt,
-                    extractor: self.extractor,
-                    mapper,
-                }
-            }
-            pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-                let stmt = self.stmt.prepare(self.client).await?;
-                let row = self.client.query_one(stmt, &self.params).await?;
-                Ok((self.mapper)((self.extractor)(&row)))
-            }
-            pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
-                self.iter().await?.try_collect().await
-            }
-            pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-                let stmt = self.stmt.prepare(self.client).await?;
-                Ok(self
-                    .client
-                    .query_opt(stmt, &self.params)
-                    .await?
-                    .map(|row| (self.mapper)((self.extractor)(&row))))
-            }
-            pub async fn iter(
-                self,
-            ) -> Result<
-                impl futures::Stream<Item = Result<T, tokio_postgres::Error>> + 'a,
-                tokio_postgres::Error,
-            > {
-                let stmt = self.stmt.prepare(self.client).await?;
-                let it = self
-                    .client
-                    .query_raw(stmt, cornucopia_async::private::slice_iter(&self.params))
-                    .await?
-                    .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
-                    .into_stream();
-                Ok(it)
-            }
-        }
-        #[derive(serde::Serialize, Debug, Clone, PartialEq)]
-        pub struct InsertBean {
-            pub bean_id: uuid::Uuid,
-            pub name: String,
-            pub description: String,
-            pub ts: time::OffsetDateTime,
-            pub region: String,
-            pub grade: String,
-        }
-        pub struct InsertBeanBorrowed<'a> {
-            pub bean_id: uuid::Uuid,
-            pub name: &'a str,
-            pub description: &'a str,
-            pub ts: time::OffsetDateTime,
-            pub region: &'a str,
-            pub grade: &'a str,
-        }
-        impl<'a> From<InsertBeanBorrowed<'a>> for InsertBean {
-            fn from(
-                InsertBeanBorrowed {
-                    bean_id,
-                    name,
-                    description,
-                    ts,
-                    region,
-                    grade,
-                }: InsertBeanBorrowed<'a>,
-            ) -> Self {
-                Self {
-                    bean_id,
-                    name: name.into(),
-                    description: description.into(),
-                    ts,
-                    region: region.into(),
-                    grade: grade.into(),
-                }
-            }
-        }
-        pub struct InsertBeanQuery<'a, C: GenericClient, T, const N: usize> {
-            client: &'a C,
-            params: [&'a (dyn postgres_types::ToSql + Sync); N],
-            stmt: &'a mut cornucopia_async::private::Stmt,
-            extractor: fn(&tokio_postgres::Row) -> InsertBeanBorrowed,
-            mapper: fn(InsertBeanBorrowed) -> T,
-        }
-        impl<'a, C, T: 'a, const N: usize> InsertBeanQuery<'a, C, T, N>
-        where
-            C: GenericClient,
-        {
-            pub fn map<R>(
-                self,
-                mapper: fn(InsertBeanBorrowed) -> R,
-            ) -> InsertBeanQuery<'a, C, R, N> {
-                InsertBeanQuery {
                     client: self.client,
                     params: self.params,
                     stmt: self.stmt,
@@ -296,16 +203,16 @@ returning
                 client: &'a C,
                 bean_id: &'a uuid::Uuid,
                 name: &'a T1,
-                description: &'a T2,
+                description: &'a Option<T2>,
                 ts: &'a time::OffsetDateTime,
-                region: &'a T3,
-                grade: &'a T4,
-            ) -> InsertBeanQuery<'a, C, InsertBean, 6> {
-                InsertBeanQuery {
+                region: &'a Option<T3>,
+                grade: &'a Option<T4>,
+            ) -> BeanQuery<'a, C, Bean, 6> {
+                BeanQuery {
                     client,
                     params: [bean_id, name, description, ts, region, grade],
                     stmt: &mut self.0,
-                    extractor: |row| InsertBeanBorrowed {
+                    extractor: |row| BeanBorrowed {
                         bean_id: row.get(0),
                         name: row.get(1),
                         description: row.get(2),
@@ -313,7 +220,7 @@ returning
                         region: row.get(4),
                         grade: row.get(5),
                     },
-                    mapper: |it| <InsertBean>::from(it),
+                    mapper: |it| <Bean>::from(it),
                 }
             }
         }
@@ -328,7 +235,7 @@ returning
             cornucopia_async::Params<
                 'a,
                 InsertBeanParams<T1, T2, T3, T4>,
-                InsertBeanQuery<'a, C, InsertBean, 6>,
+                BeanQuery<'a, C, Bean, 6>,
                 C,
             > for InsertBeanStmt
         {
@@ -336,7 +243,7 @@ returning
                 &'a mut self,
                 client: &'a C,
                 params: &'a InsertBeanParams<T1, T2, T3, T4>,
-            ) -> InsertBeanQuery<'a, C, InsertBean, 6> {
+            ) -> BeanQuery<'a, C, Bean, 6> {
                 self.bind(
                     client,
                     &params.bean_id,
