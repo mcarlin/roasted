@@ -19,3 +19,15 @@ returning
     ts,
     region,
     grade;
+
+--! update_bean (description?, region?, grade?) : Bean
+update core.bean
+set (name, description, ts, region, grade) = (:name, :description, :ts, :region, :grade)
+where bean_id = :bean_id
+returning
+    bean_id,
+    name,
+    description,
+    ts,
+    region,
+    grade;

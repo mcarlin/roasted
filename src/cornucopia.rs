@@ -28,6 +28,20 @@ pub mod queries {
             pub region: Option<T3>,
             pub grade: Option<T4>,
         }
+        #[derive(Debug)]
+        pub struct UpdateBeanParams<
+            T1: cornucopia_async::StringSql,
+            T2: cornucopia_async::StringSql,
+            T3: cornucopia_async::StringSql,
+            T4: cornucopia_async::StringSql,
+        > {
+            pub name: T1,
+            pub description: Option<T2>,
+            pub ts: time::OffsetDateTime,
+            pub region: Option<T3>,
+            pub grade: Option<T4>,
+            pub bean_id: uuid::Uuid,
+        }
         #[derive(serde::Serialize, Debug, Clone, PartialEq)]
         pub struct Bean {
             pub bean_id: uuid::Uuid,
@@ -252,6 +266,86 @@ returning
                     &params.ts,
                     &params.region,
                     &params.grade,
+                )
+            }
+        }
+        pub fn update_bean() -> UpdateBeanStmt {
+            UpdateBeanStmt(cornucopia_async::private::Stmt::new(
+                "update core.bean
+set (name, description, ts, region, grade) = ($1, $2, $3, $4, $5)
+where bean_id = $6
+returning
+    bean_id,
+    name,
+    description,
+    ts,
+    region,
+    grade",
+            ))
+        }
+        pub struct UpdateBeanStmt(cornucopia_async::private::Stmt);
+        impl UpdateBeanStmt {
+            pub fn bind<
+                'a,
+                C: GenericClient,
+                T1: cornucopia_async::StringSql,
+                T2: cornucopia_async::StringSql,
+                T3: cornucopia_async::StringSql,
+                T4: cornucopia_async::StringSql,
+            >(
+                &'a mut self,
+                client: &'a C,
+                name: &'a T1,
+                description: &'a Option<T2>,
+                ts: &'a time::OffsetDateTime,
+                region: &'a Option<T3>,
+                grade: &'a Option<T4>,
+                bean_id: &'a uuid::Uuid,
+            ) -> BeanQuery<'a, C, Bean, 6> {
+                BeanQuery {
+                    client,
+                    params: [name, description, ts, region, grade, bean_id],
+                    stmt: &mut self.0,
+                    extractor: |row| BeanBorrowed {
+                        bean_id: row.get(0),
+                        name: row.get(1),
+                        description: row.get(2),
+                        ts: row.get(3),
+                        region: row.get(4),
+                        grade: row.get(5),
+                    },
+                    mapper: |it| <Bean>::from(it),
+                }
+            }
+        }
+        impl<
+                'a,
+                C: GenericClient,
+                T1: cornucopia_async::StringSql,
+                T2: cornucopia_async::StringSql,
+                T3: cornucopia_async::StringSql,
+                T4: cornucopia_async::StringSql,
+            >
+            cornucopia_async::Params<
+                'a,
+                UpdateBeanParams<T1, T2, T3, T4>,
+                BeanQuery<'a, C, Bean, 6>,
+                C,
+            > for UpdateBeanStmt
+        {
+            fn params(
+                &'a mut self,
+                client: &'a C,
+                params: &'a UpdateBeanParams<T1, T2, T3, T4>,
+            ) -> BeanQuery<'a, C, Bean, 6> {
+                self.bind(
+                    client,
+                    &params.name,
+                    &params.description,
+                    &params.ts,
+                    &params.region,
+                    &params.grade,
+                    &params.bean_id,
                 )
             }
         }

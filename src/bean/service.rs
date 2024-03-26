@@ -1,5 +1,5 @@
 use crate::bean::model::Bean;
-use crate::cornucopia::queries::bean::{Bean as BeanRow, InsertBeanParams};
+use crate::cornucopia::queries::bean::{Bean as BeanRow, InsertBeanParams, UpdateBeanParams};
 use cornucopia_async::Params;
 use deadpool_postgres::Pool;
 use std::error::Error;
@@ -61,6 +61,26 @@ impl BeanService {
 
         Ok(crate::cornucopia::queries::bean::find_bean_by_id()
             .bind(&client, &id)
+            .one()
+            .await
+            .map(Bean::from)?)
+    }
+
+    pub(crate) async fn update(&self, id: Uuid, bean: Bean) -> Result<Bean, Box<dyn Error>> {
+        let client = self.db_pool.get().await?;
+
+        Ok(crate::cornucopia::queries::bean::update_bean()
+            .params(
+                &client,
+                &UpdateBeanParams {
+                    name: bean.name,
+                    description: bean.description.as_deref(),
+                    ts: bean.ts,
+                    region: bean.region.as_deref(),
+                    grade: bean.grade.as_deref(),
+                    bean_id: id,
+                },
+            )
             .one()
             .await
             .map(Bean::from)?)
