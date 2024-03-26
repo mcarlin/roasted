@@ -372,56 +372,42 @@ returning
             pub temp_setting: i32,
             pub temperature: rust_decimal::Decimal,
         }
-        #[derive(serde::Serialize, Debug, Clone, PartialEq)]
+        #[derive(Debug)]
+        pub struct UpdateRoastStepParams<T1: cornucopia_async::StringSql> {
+            pub roast_id: uuid::Uuid,
+            pub position: i32,
+            pub description: T1,
+            pub time: i64,
+            pub fan_speed: i32,
+            pub temp_setting: i32,
+            pub temperature: rust_decimal::Decimal,
+        }
+        #[derive(Clone, Copy, Debug)]
+        pub struct UpdateRoastParams {
+            pub bean_id: uuid::Uuid,
+            pub roast_level_id: uuid::Uuid,
+            pub ts: time::OffsetDateTime,
+            pub roast_id: uuid::Uuid,
+        }
+        #[derive(serde::Serialize, Debug, Clone, PartialEq, Copy)]
         pub struct AllRoasts {
             pub roast_id: uuid::Uuid,
             pub bean_id: uuid::Uuid,
             pub roast_ts: time::OffsetDateTime,
             pub roast_level_id: uuid::Uuid,
-            pub roast_level_name: String,
-            pub roast_level_description: String,
-        }
-        pub struct AllRoastsBorrowed<'a> {
-            pub roast_id: uuid::Uuid,
-            pub bean_id: uuid::Uuid,
-            pub roast_ts: time::OffsetDateTime,
-            pub roast_level_id: uuid::Uuid,
-            pub roast_level_name: &'a str,
-            pub roast_level_description: &'a str,
-        }
-        impl<'a> From<AllRoastsBorrowed<'a>> for AllRoasts {
-            fn from(
-                AllRoastsBorrowed {
-                    roast_id,
-                    bean_id,
-                    roast_ts,
-                    roast_level_id,
-                    roast_level_name,
-                    roast_level_description,
-                }: AllRoastsBorrowed<'a>,
-            ) -> Self {
-                Self {
-                    roast_id,
-                    bean_id,
-                    roast_ts,
-                    roast_level_id,
-                    roast_level_name: roast_level_name.into(),
-                    roast_level_description: roast_level_description.into(),
-                }
-            }
         }
         pub struct AllRoastsQuery<'a, C: GenericClient, T, const N: usize> {
             client: &'a C,
             params: [&'a (dyn postgres_types::ToSql + Sync); N],
             stmt: &'a mut cornucopia_async::private::Stmt,
-            extractor: fn(&tokio_postgres::Row) -> AllRoastsBorrowed,
-            mapper: fn(AllRoastsBorrowed) -> T,
+            extractor: fn(&tokio_postgres::Row) -> AllRoasts,
+            mapper: fn(AllRoasts) -> T,
         }
         impl<'a, C, T: 'a, const N: usize> AllRoastsQuery<'a, C, T, N>
         where
             C: GenericClient,
         {
-            pub fn map<R>(self, mapper: fn(AllRoastsBorrowed) -> R) -> AllRoastsQuery<'a, C, R, N> {
+            pub fn map<R>(self, mapper: fn(AllRoasts) -> R) -> AllRoastsQuery<'a, C, R, N> {
                 AllRoastsQuery {
                     client: self.client,
                     params: self.params,
@@ -462,59 +448,25 @@ returning
                 Ok(it)
             }
         }
-        #[derive(serde::Serialize, Debug, Clone, PartialEq)]
+        #[derive(serde::Serialize, Debug, Clone, PartialEq, Copy)]
         pub struct FindRoastById {
             pub roast_id: uuid::Uuid,
             pub bean_id: uuid::Uuid,
             pub roast_ts: time::OffsetDateTime,
             pub roast_level_id: uuid::Uuid,
-            pub roast_level_name: String,
-            pub roast_level_description: String,
-        }
-        pub struct FindRoastByIdBorrowed<'a> {
-            pub roast_id: uuid::Uuid,
-            pub bean_id: uuid::Uuid,
-            pub roast_ts: time::OffsetDateTime,
-            pub roast_level_id: uuid::Uuid,
-            pub roast_level_name: &'a str,
-            pub roast_level_description: &'a str,
-        }
-        impl<'a> From<FindRoastByIdBorrowed<'a>> for FindRoastById {
-            fn from(
-                FindRoastByIdBorrowed {
-                    roast_id,
-                    bean_id,
-                    roast_ts,
-                    roast_level_id,
-                    roast_level_name,
-                    roast_level_description,
-                }: FindRoastByIdBorrowed<'a>,
-            ) -> Self {
-                Self {
-                    roast_id,
-                    bean_id,
-                    roast_ts,
-                    roast_level_id,
-                    roast_level_name: roast_level_name.into(),
-                    roast_level_description: roast_level_description.into(),
-                }
-            }
         }
         pub struct FindRoastByIdQuery<'a, C: GenericClient, T, const N: usize> {
             client: &'a C,
             params: [&'a (dyn postgres_types::ToSql + Sync); N],
             stmt: &'a mut cornucopia_async::private::Stmt,
-            extractor: fn(&tokio_postgres::Row) -> FindRoastByIdBorrowed,
-            mapper: fn(FindRoastByIdBorrowed) -> T,
+            extractor: fn(&tokio_postgres::Row) -> FindRoastById,
+            mapper: fn(FindRoastById) -> T,
         }
         impl<'a, C, T: 'a, const N: usize> FindRoastByIdQuery<'a, C, T, N>
         where
             C: GenericClient,
         {
-            pub fn map<R>(
-                self,
-                mapper: fn(FindRoastByIdBorrowed) -> R,
-            ) -> FindRoastByIdQuery<'a, C, R, N> {
+            pub fn map<R>(self, mapper: fn(FindRoastById) -> R) -> FindRoastByIdQuery<'a, C, R, N> {
                 FindRoastByIdQuery {
                     client: self.client,
                     params: self.params,
@@ -656,59 +608,25 @@ returning
                 Ok(it)
             }
         }
-        #[derive(serde::Serialize, Debug, Clone, PartialEq)]
+        #[derive(serde::Serialize, Debug, Clone, PartialEq, Copy)]
         pub struct InsertRoast {
             pub roast_id: uuid::Uuid,
             pub bean_id: uuid::Uuid,
-            pub roast_ts: time::OffsetDateTime,
             pub roast_level_id: uuid::Uuid,
-            pub roast_level_name: String,
-            pub roast_level_description: String,
-        }
-        pub struct InsertRoastBorrowed<'a> {
-            pub roast_id: uuid::Uuid,
-            pub bean_id: uuid::Uuid,
-            pub roast_ts: time::OffsetDateTime,
-            pub roast_level_id: uuid::Uuid,
-            pub roast_level_name: &'a str,
-            pub roast_level_description: &'a str,
-        }
-        impl<'a> From<InsertRoastBorrowed<'a>> for InsertRoast {
-            fn from(
-                InsertRoastBorrowed {
-                    roast_id,
-                    bean_id,
-                    roast_ts,
-                    roast_level_id,
-                    roast_level_name,
-                    roast_level_description,
-                }: InsertRoastBorrowed<'a>,
-            ) -> Self {
-                Self {
-                    roast_id,
-                    bean_id,
-                    roast_ts,
-                    roast_level_id,
-                    roast_level_name: roast_level_name.into(),
-                    roast_level_description: roast_level_description.into(),
-                }
-            }
+            pub ts: time::OffsetDateTime,
         }
         pub struct InsertRoastQuery<'a, C: GenericClient, T, const N: usize> {
             client: &'a C,
             params: [&'a (dyn postgres_types::ToSql + Sync); N],
             stmt: &'a mut cornucopia_async::private::Stmt,
-            extractor: fn(&tokio_postgres::Row) -> InsertRoastBorrowed,
-            mapper: fn(InsertRoastBorrowed) -> T,
+            extractor: fn(&tokio_postgres::Row) -> InsertRoast,
+            mapper: fn(InsertRoast) -> T,
         }
         impl<'a, C, T: 'a, const N: usize> InsertRoastQuery<'a, C, T, N>
         where
             C: GenericClient,
         {
-            pub fn map<R>(
-                self,
-                mapper: fn(InsertRoastBorrowed) -> R,
-            ) -> InsertRoastQuery<'a, C, R, N> {
+            pub fn map<R>(self, mapper: fn(InsertRoast) -> R) -> InsertRoastQuery<'a, C, R, N> {
                 InsertRoastQuery {
                     client: self.client,
                     params: self.params,
@@ -852,14 +770,11 @@ returning
         }
         pub fn all_roasts() -> AllRoastsStmt {
             AllRoastsStmt(cornucopia_async::private::Stmt::new(
-                "select r.roast_id        as roast_id,
-       r.bean_id         as bean_id,
-       r.ts              as roast_ts,
-       rl.roast_level_id as roast_level_id,
-       rl.name           as roast_level_name,
-       rl.description    as roast_level_description
-from core.roast r
-         inner join core.roast_level rl using (roast_level_id)",
+                "select r.roast_id       as roast_id,
+       r.bean_id        as bean_id,
+       r.ts             as roast_ts,
+       r.roast_level_id as roast_level_id
+from core.roast r",
             ))
         }
         pub struct AllRoastsStmt(cornucopia_async::private::Stmt);
@@ -872,13 +787,11 @@ from core.roast r
                     client,
                     params: [],
                     stmt: &mut self.0,
-                    extractor: |row| AllRoastsBorrowed {
+                    extractor: |row| AllRoasts {
                         roast_id: row.get(0),
                         bean_id: row.get(1),
                         roast_ts: row.get(2),
                         roast_level_id: row.get(3),
-                        roast_level_name: row.get(4),
-                        roast_level_description: row.get(5),
                     },
                     mapper: |it| <AllRoasts>::from(it),
                 }
@@ -886,14 +799,11 @@ from core.roast r
         }
         pub fn find_roast_by_id() -> FindRoastByIdStmt {
             FindRoastByIdStmt(cornucopia_async::private::Stmt::new(
-                "select r.roast_id        as roast_id,
-       r.bean_id         as bean_id,
-       r.ts              as roast_ts,
-       rl.roast_level_id as roast_level_id,
-       rl.name           as roast_level_name,
-       rl.description    as roast_level_description
+                "select r.roast_id       as roast_id,
+       r.bean_id        as bean_id,
+       r.ts             as roast_ts,
+       r.roast_level_id as roast_level_id
 from core.roast r
-         inner join core.roast_level rl using (roast_level_id)
 where roast_id = $1",
             ))
         }
@@ -908,13 +818,11 @@ where roast_id = $1",
                     client,
                     params: [roast_id],
                     stmt: &mut self.0,
-                    extractor: |row| FindRoastByIdBorrowed {
+                    extractor: |row| FindRoastById {
                         roast_id: row.get(0),
                         bean_id: row.get(1),
                         roast_ts: row.get(2),
                         roast_level_id: row.get(3),
-                        roast_level_name: row.get(4),
-                        roast_level_description: row.get(5),
                     },
                     mapper: |it| <FindRoastById>::from(it),
                 }
@@ -961,18 +869,9 @@ where roast_id = $1",
         }
         pub fn insert_roast() -> InsertRoastStmt {
             InsertRoastStmt(cornucopia_async::private::Stmt::new(
-                "with r as (
-    insert into core.roast (roast_id, bean_id, roast_level_id, ts)
-        values ($1, $2, $3, $4)
-        returning roast_id, bean_id, roast_level_id, ts)
-select r.roast_id        as roast_id,
-       r.bean_id         as bean_id,
-       r.ts              as roast_ts,
-       rl.roast_level_id as roast_level_id,
-       rl.name           as roast_level_name,
-       rl.description    as roast_level_description
-from r
-         inner join core.roast_level rl using (roast_level_id)",
+                "insert into core.roast (roast_id, bean_id, roast_level_id, ts)
+values ($1, $2, $3, $4)
+returning roast_id, bean_id, roast_level_id, ts",
             ))
         }
         pub struct InsertRoastStmt(cornucopia_async::private::Stmt);
@@ -989,13 +888,11 @@ from r
                     client,
                     params: [roast_id, bean_id, roast_level_id, ts],
                     stmt: &mut self.0,
-                    extractor: |row| InsertRoastBorrowed {
+                    extractor: |row| InsertRoast {
                         roast_id: row.get(0),
                         bean_id: row.get(1),
-                        roast_ts: row.get(2),
-                        roast_level_id: row.get(3),
-                        roast_level_name: row.get(4),
-                        roast_level_description: row.get(5),
+                        roast_level_id: row.get(2),
+                        ts: row.get(3),
                     },
                     mapper: |it| <InsertRoast>::from(it),
                 }
@@ -1100,6 +997,562 @@ returning
                     &params.fan_speed,
                     &params.temp_setting,
                     &params.temperature,
+                )
+            }
+        }
+        pub fn update_roast_step() -> UpdateRoastStepStmt {
+            UpdateRoastStepStmt(cornucopia_async::private::Stmt::new(
+                "update core.roast_step
+set roast_id     = $1,
+    position     = $2,
+    description  = $3,
+    time= $4,
+    fan_speed    = $5,
+    temp_setting = $6,
+    temperature  = $7
+where roast_id = $1",
+            ))
+        }
+        pub struct UpdateRoastStepStmt(cornucopia_async::private::Stmt);
+        impl UpdateRoastStepStmt {
+            pub async fn bind<'a, C: GenericClient, T1: cornucopia_async::StringSql>(
+                &'a mut self,
+                client: &'a C,
+                roast_id: &'a uuid::Uuid,
+                position: &'a i32,
+                description: &'a T1,
+                time: &'a i64,
+                fan_speed: &'a i32,
+                temp_setting: &'a i32,
+                temperature: &'a rust_decimal::Decimal,
+            ) -> Result<u64, tokio_postgres::Error> {
+                let stmt = self.0.prepare(client).await?;
+                client
+                    .execute(
+                        stmt,
+                        &[
+                            roast_id,
+                            position,
+                            description,
+                            time,
+                            fan_speed,
+                            temp_setting,
+                            temperature,
+                        ],
+                    )
+                    .await
+            }
+        }
+        impl<'a, C: GenericClient + Send + Sync, T1: cornucopia_async::StringSql>
+            cornucopia_async::Params<
+                'a,
+                UpdateRoastStepParams<T1>,
+                std::pin::Pin<
+                    Box<
+                        dyn futures::Future<Output = Result<u64, tokio_postgres::Error>>
+                            + Send
+                            + 'a,
+                    >,
+                >,
+                C,
+            > for UpdateRoastStepStmt
+        {
+            fn params(
+                &'a mut self,
+                client: &'a C,
+                params: &'a UpdateRoastStepParams<T1>,
+            ) -> std::pin::Pin<
+                Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
+            > {
+                Box::pin(self.bind(
+                    client,
+                    &params.roast_id,
+                    &params.position,
+                    &params.description,
+                    &params.time,
+                    &params.fan_speed,
+                    &params.temp_setting,
+                    &params.temperature,
+                ))
+            }
+        }
+        pub fn update_roast() -> UpdateRoastStmt {
+            UpdateRoastStmt(cornucopia_async::private::Stmt::new(
+                "update core.roast
+set bean_id        = $1,
+    roast_level_id = $2,
+    ts             = $3
+where roast_id = $4",
+            ))
+        }
+        pub struct UpdateRoastStmt(cornucopia_async::private::Stmt);
+        impl UpdateRoastStmt {
+            pub async fn bind<'a, C: GenericClient>(
+                &'a mut self,
+                client: &'a C,
+                bean_id: &'a uuid::Uuid,
+                roast_level_id: &'a uuid::Uuid,
+                ts: &'a time::OffsetDateTime,
+                roast_id: &'a uuid::Uuid,
+            ) -> Result<u64, tokio_postgres::Error> {
+                let stmt = self.0.prepare(client).await?;
+                client
+                    .execute(stmt, &[bean_id, roast_level_id, ts, roast_id])
+                    .await
+            }
+        }
+        impl<'a, C: GenericClient + Send + Sync>
+            cornucopia_async::Params<
+                'a,
+                UpdateRoastParams,
+                std::pin::Pin<
+                    Box<
+                        dyn futures::Future<Output = Result<u64, tokio_postgres::Error>>
+                            + Send
+                            + 'a,
+                    >,
+                >,
+                C,
+            > for UpdateRoastStmt
+        {
+            fn params(
+                &'a mut self,
+                client: &'a C,
+                params: &'a UpdateRoastParams,
+            ) -> std::pin::Pin<
+                Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
+            > {
+                Box::pin(self.bind(
+                    client,
+                    &params.bean_id,
+                    &params.roast_level_id,
+                    &params.ts,
+                    &params.roast_id,
+                ))
+            }
+        }
+    }
+    pub mod roast_level {
+        use cornucopia_async::GenericClient;
+        use futures;
+        use futures::{StreamExt, TryStreamExt};
+        #[derive(Clone, Copy, Debug)]
+        pub struct InsertRoastWithLevelParams {
+            pub roast_id: uuid::Uuid,
+            pub bean_id: uuid::Uuid,
+            pub roast_level_id: uuid::Uuid,
+            pub ts: time::OffsetDateTime,
+        }
+        #[derive(serde::Serialize, Debug, Clone, PartialEq)]
+        pub struct AllRoastsWithLevel {
+            pub roast_id: uuid::Uuid,
+            pub bean_id: uuid::Uuid,
+            pub roast_ts: time::OffsetDateTime,
+            pub roast_level_id: uuid::Uuid,
+            pub roast_level_name: String,
+            pub roast_level_description: String,
+        }
+        pub struct AllRoastsWithLevelBorrowed<'a> {
+            pub roast_id: uuid::Uuid,
+            pub bean_id: uuid::Uuid,
+            pub roast_ts: time::OffsetDateTime,
+            pub roast_level_id: uuid::Uuid,
+            pub roast_level_name: &'a str,
+            pub roast_level_description: &'a str,
+        }
+        impl<'a> From<AllRoastsWithLevelBorrowed<'a>> for AllRoastsWithLevel {
+            fn from(
+                AllRoastsWithLevelBorrowed {
+                    roast_id,
+                    bean_id,
+                    roast_ts,
+                    roast_level_id,
+                    roast_level_name,
+                    roast_level_description,
+                }: AllRoastsWithLevelBorrowed<'a>,
+            ) -> Self {
+                Self {
+                    roast_id,
+                    bean_id,
+                    roast_ts,
+                    roast_level_id,
+                    roast_level_name: roast_level_name.into(),
+                    roast_level_description: roast_level_description.into(),
+                }
+            }
+        }
+        pub struct AllRoastsWithLevelQuery<'a, C: GenericClient, T, const N: usize> {
+            client: &'a C,
+            params: [&'a (dyn postgres_types::ToSql + Sync); N],
+            stmt: &'a mut cornucopia_async::private::Stmt,
+            extractor: fn(&tokio_postgres::Row) -> AllRoastsWithLevelBorrowed,
+            mapper: fn(AllRoastsWithLevelBorrowed) -> T,
+        }
+        impl<'a, C, T: 'a, const N: usize> AllRoastsWithLevelQuery<'a, C, T, N>
+        where
+            C: GenericClient,
+        {
+            pub fn map<R>(
+                self,
+                mapper: fn(AllRoastsWithLevelBorrowed) -> R,
+            ) -> AllRoastsWithLevelQuery<'a, C, R, N> {
+                AllRoastsWithLevelQuery {
+                    client: self.client,
+                    params: self.params,
+                    stmt: self.stmt,
+                    extractor: self.extractor,
+                    mapper,
+                }
+            }
+            pub async fn one(self) -> Result<T, tokio_postgres::Error> {
+                let stmt = self.stmt.prepare(self.client).await?;
+                let row = self.client.query_one(stmt, &self.params).await?;
+                Ok((self.mapper)((self.extractor)(&row)))
+            }
+            pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
+                self.iter().await?.try_collect().await
+            }
+            pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
+                let stmt = self.stmt.prepare(self.client).await?;
+                Ok(self
+                    .client
+                    .query_opt(stmt, &self.params)
+                    .await?
+                    .map(|row| (self.mapper)((self.extractor)(&row))))
+            }
+            pub async fn iter(
+                self,
+            ) -> Result<
+                impl futures::Stream<Item = Result<T, tokio_postgres::Error>> + 'a,
+                tokio_postgres::Error,
+            > {
+                let stmt = self.stmt.prepare(self.client).await?;
+                let it = self
+                    .client
+                    .query_raw(stmt, cornucopia_async::private::slice_iter(&self.params))
+                    .await?
+                    .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                    .into_stream();
+                Ok(it)
+            }
+        }
+        #[derive(serde::Serialize, Debug, Clone, PartialEq)]
+        pub struct FindRoastWithLevelById {
+            pub roast_id: uuid::Uuid,
+            pub bean_id: uuid::Uuid,
+            pub roast_ts: time::OffsetDateTime,
+            pub roast_level_id: uuid::Uuid,
+            pub roast_level_name: String,
+            pub roast_level_description: String,
+        }
+        pub struct FindRoastWithLevelByIdBorrowed<'a> {
+            pub roast_id: uuid::Uuid,
+            pub bean_id: uuid::Uuid,
+            pub roast_ts: time::OffsetDateTime,
+            pub roast_level_id: uuid::Uuid,
+            pub roast_level_name: &'a str,
+            pub roast_level_description: &'a str,
+        }
+        impl<'a> From<FindRoastWithLevelByIdBorrowed<'a>> for FindRoastWithLevelById {
+            fn from(
+                FindRoastWithLevelByIdBorrowed {
+                    roast_id,
+                    bean_id,
+                    roast_ts,
+                    roast_level_id,
+                    roast_level_name,
+                    roast_level_description,
+                }: FindRoastWithLevelByIdBorrowed<'a>,
+            ) -> Self {
+                Self {
+                    roast_id,
+                    bean_id,
+                    roast_ts,
+                    roast_level_id,
+                    roast_level_name: roast_level_name.into(),
+                    roast_level_description: roast_level_description.into(),
+                }
+            }
+        }
+        pub struct FindRoastWithLevelByIdQuery<'a, C: GenericClient, T, const N: usize> {
+            client: &'a C,
+            params: [&'a (dyn postgres_types::ToSql + Sync); N],
+            stmt: &'a mut cornucopia_async::private::Stmt,
+            extractor: fn(&tokio_postgres::Row) -> FindRoastWithLevelByIdBorrowed,
+            mapper: fn(FindRoastWithLevelByIdBorrowed) -> T,
+        }
+        impl<'a, C, T: 'a, const N: usize> FindRoastWithLevelByIdQuery<'a, C, T, N>
+        where
+            C: GenericClient,
+        {
+            pub fn map<R>(
+                self,
+                mapper: fn(FindRoastWithLevelByIdBorrowed) -> R,
+            ) -> FindRoastWithLevelByIdQuery<'a, C, R, N> {
+                FindRoastWithLevelByIdQuery {
+                    client: self.client,
+                    params: self.params,
+                    stmt: self.stmt,
+                    extractor: self.extractor,
+                    mapper,
+                }
+            }
+            pub async fn one(self) -> Result<T, tokio_postgres::Error> {
+                let stmt = self.stmt.prepare(self.client).await?;
+                let row = self.client.query_one(stmt, &self.params).await?;
+                Ok((self.mapper)((self.extractor)(&row)))
+            }
+            pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
+                self.iter().await?.try_collect().await
+            }
+            pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
+                let stmt = self.stmt.prepare(self.client).await?;
+                Ok(self
+                    .client
+                    .query_opt(stmt, &self.params)
+                    .await?
+                    .map(|row| (self.mapper)((self.extractor)(&row))))
+            }
+            pub async fn iter(
+                self,
+            ) -> Result<
+                impl futures::Stream<Item = Result<T, tokio_postgres::Error>> + 'a,
+                tokio_postgres::Error,
+            > {
+                let stmt = self.stmt.prepare(self.client).await?;
+                let it = self
+                    .client
+                    .query_raw(stmt, cornucopia_async::private::slice_iter(&self.params))
+                    .await?
+                    .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                    .into_stream();
+                Ok(it)
+            }
+        }
+        #[derive(serde::Serialize, Debug, Clone, PartialEq)]
+        pub struct InsertRoastWithLevel {
+            pub roast_id: uuid::Uuid,
+            pub bean_id: uuid::Uuid,
+            pub roast_ts: time::OffsetDateTime,
+            pub roast_level_id: uuid::Uuid,
+            pub roast_level_name: String,
+            pub roast_level_description: String,
+        }
+        pub struct InsertRoastWithLevelBorrowed<'a> {
+            pub roast_id: uuid::Uuid,
+            pub bean_id: uuid::Uuid,
+            pub roast_ts: time::OffsetDateTime,
+            pub roast_level_id: uuid::Uuid,
+            pub roast_level_name: &'a str,
+            pub roast_level_description: &'a str,
+        }
+        impl<'a> From<InsertRoastWithLevelBorrowed<'a>> for InsertRoastWithLevel {
+            fn from(
+                InsertRoastWithLevelBorrowed {
+                    roast_id,
+                    bean_id,
+                    roast_ts,
+                    roast_level_id,
+                    roast_level_name,
+                    roast_level_description,
+                }: InsertRoastWithLevelBorrowed<'a>,
+            ) -> Self {
+                Self {
+                    roast_id,
+                    bean_id,
+                    roast_ts,
+                    roast_level_id,
+                    roast_level_name: roast_level_name.into(),
+                    roast_level_description: roast_level_description.into(),
+                }
+            }
+        }
+        pub struct InsertRoastWithLevelQuery<'a, C: GenericClient, T, const N: usize> {
+            client: &'a C,
+            params: [&'a (dyn postgres_types::ToSql + Sync); N],
+            stmt: &'a mut cornucopia_async::private::Stmt,
+            extractor: fn(&tokio_postgres::Row) -> InsertRoastWithLevelBorrowed,
+            mapper: fn(InsertRoastWithLevelBorrowed) -> T,
+        }
+        impl<'a, C, T: 'a, const N: usize> InsertRoastWithLevelQuery<'a, C, T, N>
+        where
+            C: GenericClient,
+        {
+            pub fn map<R>(
+                self,
+                mapper: fn(InsertRoastWithLevelBorrowed) -> R,
+            ) -> InsertRoastWithLevelQuery<'a, C, R, N> {
+                InsertRoastWithLevelQuery {
+                    client: self.client,
+                    params: self.params,
+                    stmt: self.stmt,
+                    extractor: self.extractor,
+                    mapper,
+                }
+            }
+            pub async fn one(self) -> Result<T, tokio_postgres::Error> {
+                let stmt = self.stmt.prepare(self.client).await?;
+                let row = self.client.query_one(stmt, &self.params).await?;
+                Ok((self.mapper)((self.extractor)(&row)))
+            }
+            pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
+                self.iter().await?.try_collect().await
+            }
+            pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
+                let stmt = self.stmt.prepare(self.client).await?;
+                Ok(self
+                    .client
+                    .query_opt(stmt, &self.params)
+                    .await?
+                    .map(|row| (self.mapper)((self.extractor)(&row))))
+            }
+            pub async fn iter(
+                self,
+            ) -> Result<
+                impl futures::Stream<Item = Result<T, tokio_postgres::Error>> + 'a,
+                tokio_postgres::Error,
+            > {
+                let stmt = self.stmt.prepare(self.client).await?;
+                let it = self
+                    .client
+                    .query_raw(stmt, cornucopia_async::private::slice_iter(&self.params))
+                    .await?
+                    .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                    .into_stream();
+                Ok(it)
+            }
+        }
+        pub fn all_roasts_with_level() -> AllRoastsWithLevelStmt {
+            AllRoastsWithLevelStmt(cornucopia_async::private::Stmt::new(
+                "select r.roast_id        as roast_id,
+       r.bean_id         as bean_id,
+       r.ts              as roast_ts,
+       rl.roast_level_id as roast_level_id,
+       rl.name           as roast_level_name,
+       rl.description    as roast_level_description
+from core.roast r
+         inner join core.roast_level rl using (roast_level_id)",
+            ))
+        }
+        pub struct AllRoastsWithLevelStmt(cornucopia_async::private::Stmt);
+        impl AllRoastsWithLevelStmt {
+            pub fn bind<'a, C: GenericClient>(
+                &'a mut self,
+                client: &'a C,
+            ) -> AllRoastsWithLevelQuery<'a, C, AllRoastsWithLevel, 0> {
+                AllRoastsWithLevelQuery {
+                    client,
+                    params: [],
+                    stmt: &mut self.0,
+                    extractor: |row| AllRoastsWithLevelBorrowed {
+                        roast_id: row.get(0),
+                        bean_id: row.get(1),
+                        roast_ts: row.get(2),
+                        roast_level_id: row.get(3),
+                        roast_level_name: row.get(4),
+                        roast_level_description: row.get(5),
+                    },
+                    mapper: |it| <AllRoastsWithLevel>::from(it),
+                }
+            }
+        }
+        pub fn find_roast_with_level_by_id() -> FindRoastWithLevelByIdStmt {
+            FindRoastWithLevelByIdStmt(cornucopia_async::private::Stmt::new(
+                "select r.roast_id        as roast_id,
+       r.bean_id         as bean_id,
+       r.ts              as roast_ts,
+       rl.roast_level_id as roast_level_id,
+       rl.name           as roast_level_name,
+       rl.description    as roast_level_description
+from core.roast r
+         inner join core.roast_level rl using (roast_level_id)
+where roast_id = $1",
+            ))
+        }
+        pub struct FindRoastWithLevelByIdStmt(cornucopia_async::private::Stmt);
+        impl FindRoastWithLevelByIdStmt {
+            pub fn bind<'a, C: GenericClient>(
+                &'a mut self,
+                client: &'a C,
+                roast_id: &'a uuid::Uuid,
+            ) -> FindRoastWithLevelByIdQuery<'a, C, FindRoastWithLevelById, 1> {
+                FindRoastWithLevelByIdQuery {
+                    client,
+                    params: [roast_id],
+                    stmt: &mut self.0,
+                    extractor: |row| FindRoastWithLevelByIdBorrowed {
+                        roast_id: row.get(0),
+                        bean_id: row.get(1),
+                        roast_ts: row.get(2),
+                        roast_level_id: row.get(3),
+                        roast_level_name: row.get(4),
+                        roast_level_description: row.get(5),
+                    },
+                    mapper: |it| <FindRoastWithLevelById>::from(it),
+                }
+            }
+        }
+        pub fn insert_roast_with_level() -> InsertRoastWithLevelStmt {
+            InsertRoastWithLevelStmt(cornucopia_async::private::Stmt::new(
+                "with r as (
+    insert into core.roast (roast_id, bean_id, roast_level_id, ts)
+        values ($1, $2, $3, $4)
+        returning roast_id, bean_id, roast_level_id, ts)
+select r.roast_id        as roast_id,
+       r.bean_id         as bean_id,
+       r.ts              as roast_ts,
+       rl.roast_level_id as roast_level_id,
+       rl.name           as roast_level_name,
+       rl.description    as roast_level_description
+from r
+         inner join core.roast_level rl using (roast_level_id)",
+            ))
+        }
+        pub struct InsertRoastWithLevelStmt(cornucopia_async::private::Stmt);
+        impl InsertRoastWithLevelStmt {
+            pub fn bind<'a, C: GenericClient>(
+                &'a mut self,
+                client: &'a C,
+                roast_id: &'a uuid::Uuid,
+                bean_id: &'a uuid::Uuid,
+                roast_level_id: &'a uuid::Uuid,
+                ts: &'a time::OffsetDateTime,
+            ) -> InsertRoastWithLevelQuery<'a, C, InsertRoastWithLevel, 4> {
+                InsertRoastWithLevelQuery {
+                    client,
+                    params: [roast_id, bean_id, roast_level_id, ts],
+                    stmt: &mut self.0,
+                    extractor: |row| InsertRoastWithLevelBorrowed {
+                        roast_id: row.get(0),
+                        bean_id: row.get(1),
+                        roast_ts: row.get(2),
+                        roast_level_id: row.get(3),
+                        roast_level_name: row.get(4),
+                        roast_level_description: row.get(5),
+                    },
+                    mapper: |it| <InsertRoastWithLevel>::from(it),
+                }
+            }
+        }
+        impl<'a, C: GenericClient>
+            cornucopia_async::Params<
+                'a,
+                InsertRoastWithLevelParams,
+                InsertRoastWithLevelQuery<'a, C, InsertRoastWithLevel, 4>,
+                C,
+            > for InsertRoastWithLevelStmt
+        {
+            fn params(
+                &'a mut self,
+                client: &'a C,
+                params: &'a InsertRoastWithLevelParams,
+            ) -> InsertRoastWithLevelQuery<'a, C, InsertRoastWithLevel, 4> {
+                self.bind(
+                    client,
+                    &params.roast_id,
+                    &params.bean_id,
+                    &params.roast_level_id,
+                    &params.ts,
                 )
             }
         }
