@@ -1,11 +1,13 @@
 use std::error::Error;
 
 use crate::bean::service::BeanService;
+use crate::roast::service::RoastService;
 
 mod bean;
 mod config;
 mod cornucopia;
 mod db;
+mod roast;
 mod server;
 mod telemetry;
 
@@ -19,6 +21,9 @@ pub async fn run_application() -> Result<(), Box<dyn Error>> {
         bean_service: BeanService {
             db_pool: pool.clone(),
         },
+        roast_service: RoastService {
+            db_pool: pool.clone(),
+        },
     };
 
     server::serve(app_state).await
@@ -27,4 +32,5 @@ pub async fn run_application() -> Result<(), Box<dyn Error>> {
 #[derive(Clone)]
 struct AppState {
     bean_service: BeanService,
+    roast_service: RoastService,
 }
