@@ -1,3 +1,4 @@
+use log::{info, log};
 use std::error::Error;
 
 use crate::bean::service::BeanService;
@@ -14,6 +15,8 @@ mod telemetry;
 pub async fn run_application() -> Result<(), Box<dyn Error>> {
     let config = config::read_config().await?;
     telemetry::init_tracing().await;
+
+    info!("Starting roasted");
 
     let pool = db::create_pool(config.db).await?;
 

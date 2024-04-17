@@ -1,12 +1,20 @@
 use crate::bean::model::Bean;
 use crate::AppState;
-use axum::extract::{Path, State};
+use axum::extract::{Path as AxumPath, State};
 use axum::http::StatusCode;
 use axum::routing::{get, post, put};
 use axum::{Json, Router};
+use utoipa::Path;
 use uuid::Uuid;
 
-async fn beans_handler(
+#[utoipa::path(
+    get,
+    path = "/v1/beans",
+    responses(
+        (status = 200, description = "List all beans successfully", body = [Bean])
+    )
+)]
+async fn list_beans_handler(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<Bean>>, (StatusCode, String)> {
     match state.bean_service.get_beans().await {
@@ -27,7 +35,7 @@ async fn create_bean_handler(
 
 async fn update_bean_handler(
     State(state): State<AppState>,
-    Path(id): Path<Uuid>,
+    AxumPath(id): AxumPath<Uuid>,
     Json(bean): Json<Bean>,
 ) -> Result<Json<Bean>, (StatusCode, String)> {
     match state.bean_service.update(id, bean).await {
@@ -38,7 +46,7 @@ async fn update_bean_handler(
 
 async fn bean_handler(
     State(state): State<AppState>,
-    Path(id): Path<Uuid>,
+    AxumPath(id): AxumPath<Uuid>,
 ) -> Result<Json<Bean>, (StatusCode, String)> {
     match state.bean_service.get_bean_by_id(id).await {
         Ok(beans) => Ok(Json(beans)),
@@ -48,9 +56,16 @@ async fn bean_handler(
 
 pub fn bean_routes(x: &AppState) -> Router<()> {
     Router::new()
-        .route("/beans", get(beans_handler))
+        .route("/beans", get(list_beans_handler))
         .route("/beans", post(create_bean_handler))
         .route("/beans/:id", put(update_bean_handler))
         .route("/beans/:id", get(bean_handler))
         .with_state(x.clone())
+}
+
+pub fn openapi() -> Vec<(String, utoipa::openapi::path::PathItem)> {
+    vec![(
+        __path_list_beans_handler::path(),
+        __path_list_beans_handler::path_item(None),
+    )]
 }
