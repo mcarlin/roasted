@@ -1,8 +1,9 @@
-use log::{info, log};
+use log::info;
 use std::error::Error;
 
 use crate::bean::service::BeanService;
 use crate::roast::service::RoastService;
+use crate::server::ServerState;
 
 mod bean;
 mod config;
@@ -18,9 +19,11 @@ pub async fn run_application() -> Result<(), Box<dyn Error>> {
 
     info!("Starting roasted");
 
-    let pool = db::create_pool(config.db).await?;
+    let server_state = server::build_state(&config);
 
+    let pool = db::create_pool(&config.db).await?;
     let app_state = AppState {
+        server_state,
         bean_service: BeanService {
             db_pool: pool.clone(),
         },
@@ -29,11 +32,12 @@ pub async fn run_application() -> Result<(), Box<dyn Error>> {
         },
     };
 
-    server::serve(app_state).await
+    server::serve(app_state, config.server).await
 }
 
 #[derive(Clone)]
 struct AppState {
+    server_state: ServerState,
     bean_service: BeanService,
     roast_service: RoastService,
 }
