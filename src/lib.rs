@@ -32,7 +32,7 @@ pub async fn run_application() -> Result<(), Box<dyn Error>> {
         },
     };
 
-    server::serve(app_state, config.server).await
+    server::serve(app_state).await
 }
 
 #[derive(Clone)]

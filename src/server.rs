@@ -18,7 +18,7 @@ pub struct ServerState {
     addr: String,
 }
 
-pub async fn serve(app_state: AppState, config: ServerConfig) -> Result<(), Box<dyn Error>> {
+pub async fn serve(app_state: AppState) -> Result<(), Box<dyn Error>> {
     let app = Router::new()
         .route("/api-docs/openapi.json", get(openapi))
         .with_state(app_state.clone())
