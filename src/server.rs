@@ -41,8 +41,15 @@ async fn fallback() -> (StatusCode, &'static str) {
     (StatusCode::NOT_FOUND, "Not Found")
 }
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 async fn openapi(State(state): State<AppState>) -> Json<openapi::OpenApi> {
     let mut builder = OpenApiBuilder::new();
+
+    let mut info_builder = openapi::InfoBuilder::new();
+    info_builder = info_builder.title("Roasted");
+    info_builder = info_builder.description(Some("Coffee roasting and analytics"));
+    info_builder = info_builder.version(VERSION);
+    builder = builder.info(info_builder.build());
 
     let mut server_builder = ServerBuilder::new();
     server_builder = server_builder.description(Some(
