@@ -5,8 +5,22 @@ use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::routing::{delete, get, post, put};
 use axum::{Json, Router};
+use utoipa::Path as ApiPath;
 use uuid::Uuid;
 
+use crate::bean::routes::{
+    __path_create_bean_handler, __path_get_bean_handler, __path_list_beans_handler,
+    __path_update_bean_handler,
+};
+
+#[utoipa::path(
+    get,
+    path = "/v1/roasts",
+    responses(
+        (status = 200, description = "List all roasts successfully", body = [Roast]),
+        (status = 500, description = "Internal server error", body = String)
+    )
+)]
 async fn get_roasts_handler(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<Roast>>, (StatusCode, String)> {
@@ -16,6 +30,17 @@ async fn get_roasts_handler(
     }
 }
 
+#[utoipa::path(
+    get,
+    path = "/v1/roasts/{id}",
+    params(
+        ("id" = String, Path, description = "roast uuid"),
+    ),
+    responses(
+        (status = 200, description = "Fetched roast successfully", body = Roast),
+        (status = 500, description = "Internal server error", body = String)
+    )
+)]
 async fn get_roast_handler(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
@@ -27,6 +52,15 @@ async fn get_roast_handler(
     }
 }
 
+#[utoipa::path(
+    post,
+    path = "/v1/roasts",
+    request_body = Roast,
+    responses(
+        (status = 200, description = "Created roast successfully", body = Roast),
+        (status = 500, description = "Internal server error", body = String)
+    )
+)]
 async fn create_roast_handler(
     State(state): State<AppState>,
     Json(roast): Json<Roast>,
@@ -37,6 +71,18 @@ async fn create_roast_handler(
     }
 }
 
+#[utoipa::path(
+    put,
+    path = "/v1/roasts",
+    params(
+        ("id" = String, Path, description = "roast uuid"),
+    ),
+    request_body = Roast,
+    responses(
+        (status = 200, description = "Updated roast successfully", body = Roast),
+        (status = 500, description = "Internal server error", body = String)
+    )
+)]
 async fn update_roast_handler(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
@@ -48,6 +94,17 @@ async fn update_roast_handler(
     }
 }
 
+#[utoipa::path(
+    delete,
+    path = "/v1/roasts/{id}",
+    params(
+        ("id" = String, Path, description = "roast uuid"),
+    ),
+    responses(
+        (status = 200, description = "Deleted roast successfully"),
+        (status = 500, description = "Internal server error", body = String)
+    )
+)]
 async fn delete_roast_handler(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
@@ -58,6 +115,17 @@ async fn delete_roast_handler(
     }
 }
 
+#[utoipa::path(
+    get,
+    path = "/v1/roasts/{id}/steps",
+    params(
+        ("id" = String, Path, description = "roast uuid"),
+    ),
+    responses(
+        (status = 200, description = "Listed roast steps successfully", body = [RoastStep]),
+        (status = 500, description = "Internal server error", body = String)
+    )
+)]
 async fn get_roast_steps_handler(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
@@ -68,6 +136,17 @@ async fn get_roast_steps_handler(
     }
 }
 
+#[utoipa::path(
+    get,
+    path = "/v1/roast-steps/{id}",
+    params(
+        ("id" = String, Path, description = "roast step uuid"),
+    ),
+    responses(
+    (status = 200, description = "Fetchd roast step successfully", body = RoastStep),
+    (status = 500, description = "Internal server error", body = String)
+    )
+)]
 async fn get_roast_step_handler(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
@@ -78,6 +157,18 @@ async fn get_roast_step_handler(
     }
 }
 
+#[utoipa::path(
+    post,
+    path = "/v1/roasts/{id}/steps",
+    params(
+        ("id" = String, Path, description = "roast step uuid"),
+    ),
+    request_body = RoastStep,
+    responses(
+        (status = 200, description = "Created roast step successfully", body = RoastStep),
+        (status = 500, description = "Internal server error", body = String)
+    )
+)]
 async fn create_roast_step_handler(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
@@ -91,6 +182,18 @@ async fn create_roast_step_handler(
     }
 }
 
+#[utoipa::path(
+    put,
+    path = "/v1/roast-steps/{id}",
+    params(
+        ("id" = String, Path, description = "roast step uuid"),
+    ),
+    request_body = RoastStep,
+    responses(
+        (status = 200, description = "Updated roast step successfully", body = RoastStep),
+        (status = 500, description = "Internal server error", body = String)
+    )
+)]
 async fn update_roast_step_handler(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
@@ -104,6 +207,17 @@ async fn update_roast_step_handler(
     }
 }
 
+#[utoipa::path(
+    delete,
+    path = "/v1/roast-steps/{id}",
+    params(
+        ("id" = String, Path, description = "roast uuid"),
+    ),
+    responses(
+        (status = 200, description = "Deleted roast step successfully"),
+        (status = 500, description = "Internal server error", body = String)
+    )
+)]
 async fn delete_roast_step_handler(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
@@ -114,6 +228,14 @@ async fn delete_roast_step_handler(
     }
 }
 
+#[utoipa::path(
+    get,
+    path = "/v1/roast-levels",
+    responses(
+        (status = 200, description = "Listed roast levels successfully", body = [RoastLevel]),
+        (status = 500, description = "Internal server error", body = String)
+    )
+)]
 async fn get_roast_levels_handler(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<RoastLevel>>, (StatusCode, String)> {
@@ -137,4 +259,35 @@ pub fn roast_routes(x: &AppState) -> Router<()> {
         .route("/roast-steps/:id", delete(delete_roast_step_handler))
         .route("/roast-levels", get(get_roast_levels_handler))
         .with_state(x.clone())
+}
+
+macro_rules! apis {
+    (
+        $($handler:ident),*
+    )=> {
+        vec![
+           $(
+               (
+                    $handler::path(),
+                    $handler::path_item(None),
+                ),
+           )*
+        ]
+    };
+}
+
+pub fn openapi() -> Vec<(String, utoipa::openapi::path::PathItem)> {
+    apis!(
+        __path_get_roasts_handler,
+        __path_get_roast_handler,
+        __path_create_roast_handler,
+        __path_update_roast_handler,
+        __path_delete_roast_handler,
+        __path_get_roast_steps_handler,
+        __path_get_roast_step_handler,
+        __path_create_roast_step_handler,
+        __path_update_roast_step_handler,
+        __path_delete_roast_step_handler,
+        __path_get_roast_levels_handler
+    )
 }

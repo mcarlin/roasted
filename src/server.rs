@@ -1,7 +1,7 @@
 use crate::bean::routes::bean_routes;
 use crate::config::{RoastedConfig, ServerConfig};
 use crate::roast::routes::roast_routes;
-use crate::{bean, run_application, AppState};
+use crate::{bean, roast, run_application, AppState};
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::routing::get;
@@ -60,6 +60,7 @@ async fn openapi(State(state): State<AppState>) -> Json<openapi::OpenApi> {
 
     let mut paths = Vec::new();
     paths.append(&mut bean::routes::openapi());
+    paths.append(&mut roast::routes::openapi());
     let mut paths_builder = openapi::path::PathsBuilder::new();
     for (path, item) in paths {
         paths_builder = paths_builder.path(path, item);
